@@ -22,7 +22,7 @@ g++ .\input.cpp -o input.exe
 
 Linux
 ```shell
-g++ ./input.cpp -o input.exe
+g++ ./input.cpp -o input
 ./input
 ```
 
