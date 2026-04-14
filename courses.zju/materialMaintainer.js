@@ -41,8 +41,12 @@ import path from "path";
 
 import "dotenv/config";
 
+import secureLoad from "../security.js";
+
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
+
 const courses = new COURSES(
-  new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+  new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
 
 const byteToSize = (bytes) => {
@@ -176,3 +180,5 @@ const downloadFiles = (list) => {
         });
     });
 })();
+
+});

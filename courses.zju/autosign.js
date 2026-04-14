@@ -39,12 +39,14 @@ const sendBoth=(msg)=>{
   dingTalk(msg);
 }
 
+import secureLoad from "../security.js";
 
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
 const courses = new COURSES(
-  new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+  new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
 
-dingTalk("[Auto Sign-in] Logged in as " + process.env.ZJU_USERNAME);
+dingTalk("[Auto Sign-in] Logged in as " + ZJU_USERNAME);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -468,3 +470,4 @@ async function batchNumberRollCall(rid) {
   }
 }
 
+});

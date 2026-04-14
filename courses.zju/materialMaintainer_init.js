@@ -7,8 +7,12 @@ import path from "path";
 
 import "dotenv/config";
 
+import secureLoad from "../security.js";
+
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
+
 const coursesClient = new COURSES(
-	new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+	new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
 
 const sanitizeFileName = (name) =>
@@ -118,3 +122,5 @@ const getCourses = async (semesterIds) => {
 	fs.writeFileSync(cacheFile, JSON.stringify(config, null, 2), "utf-8");
 	console.log(`初始化完成：${cacheFile}`);
 })();
+
+});

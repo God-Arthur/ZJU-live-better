@@ -26,10 +26,13 @@ function time_later(end) {
 }
 
 // courses.zju.edu.cn
+import secureLoad from "../security.js";
+
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
 
 async function getCoursesZjuTodos() {
   const courses = new COURSES(
-    new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+    new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
   );
 
   // 1. 获取活跃学期
@@ -302,3 +305,5 @@ async function getPintiaTodos() {
   }).join("\n")}
 `);
 })();
+
+});

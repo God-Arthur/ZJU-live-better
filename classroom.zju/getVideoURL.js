@@ -19,9 +19,11 @@ import "dotenv/config";
 let opener = process.env.VIDEO_OPENER??false;
 import { spawn } from "child_process";
 
+import secureLoad from "../security.js";
 
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
 const classroom = new CLASSROOM(
-  new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+  new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
 
 const TimeAgo = (time) => {
@@ -149,3 +151,5 @@ async function ChooseVideo(choices) {
         });
     });
 }
+
+});

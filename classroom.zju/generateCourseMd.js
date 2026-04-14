@@ -15,10 +15,17 @@ import { CLASSROOM, ZJUAM } from "login-zju";
 
 import "dotenv/config";
 
+import fs from "fs";
+import fsPromises from "fs/promises";
+import path from "path";
+import { pipeline } from "stream";
+import { promisify } from "util";
 
+import secureLoad from "../security.js";
 
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
 const classroom = new CLASSROOM(
-  new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+  new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
 
 const TimeAgo = (time) => {
@@ -124,11 +131,7 @@ async function ChooseVideo(choices) {
 }
 
 
-import fs from "fs";
-import fsPromises from "fs/promises";
-import path from "path";
-import { pipeline } from "stream";
-import { promisify } from "util";
+
 
 
 
@@ -276,3 +279,4 @@ class CourseExporter {
   }
 }
 
+});

@@ -5,8 +5,12 @@ import { COURSES, ZJUAM } from "login-zju";
 
 import "dotenv/config";
 
-const courses = new COURSES(
-  new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+import secureLoad from "../security.js";
+
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
+
+  const courses = new COURSES(
+  new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
 
 function time_later(end){
@@ -52,3 +56,5 @@ courses.fetch("https://courses.zju.edu.cn/api/todos").then((v) => v.json()).then
 `);
     
 })
+
+});

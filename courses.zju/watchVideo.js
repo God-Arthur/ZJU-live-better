@@ -10,8 +10,12 @@ import "dotenv/config";
 
 const CHUNK_SECONDS = 120;
 
+import secureLoad from "../security.js";
+
+secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
+
 const courses = new COURSES(
-  new ZJUAM(process.env.ZJU_USERNAME, process.env.ZJU_PASSWORD)
+  new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
 
 const state = {
@@ -308,3 +312,5 @@ async function main() {
 }
 
 main();
+
+});
