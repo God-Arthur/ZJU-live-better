@@ -2,13 +2,29 @@
 
 A collection of useful scripts helping you live better in ZJU.
 
+#原项目界面
+
+https://github.com/5dbwat4/ZJU-live-better
+
 ## 配置
 
 创建文件`.env`，配置你的学号和密码
 
 运行`npm install`安装依赖
 
-使用时，在working dir下运行`node path/to/script`，其中`path/to/script`是指向脚本的路径，例如`classroom.zju/generateCourseMd`
+请确保你已安装g++编译器
+
+Windows
+```powershell
+g++ .\input.cpp -o input.exe
+.\input.exe
+```
+
+Linux
+```shell
+g++ ./input.cpp -o input.exe
+./input.exe
+```
 
 也可以运行`npm link`将本项目链接到全局，然后可以直接在任意目录下运行`zlb`进入脚本选择
 
