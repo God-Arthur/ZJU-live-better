@@ -2,7 +2,7 @@
 
 A collection of useful scripts helping you live better in ZJU.
 
-#原项目界面
+## 原项目界面
 
 https://github.com/5dbwat4/ZJU-live-better
 
@@ -23,7 +23,7 @@ g++ .\input.cpp -o input.exe
 Linux
 ```shell
 g++ ./input.cpp -o input.exe
-./input.exe
+./input
 ```
 
 也可以运行`npm link`将本项目链接到全局，然后可以直接在任意目录下运行`zlb`进入脚本选择
