@@ -7,13 +7,13 @@ using namespace std;
 
 #include <filesystem>
 
+#if __cplusplus >= 201703L
+#include <filesystem>
 namespace fs = std::filesystem;
-
-
-#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
-#define _MY_WINDOWS_
-#elif defined(__linux__) || defined(linux) || defined(__linux)
-#define _MY_LINUX_
+#elif defined(_WIN32) || defined(__linux__)
+// 兼容C++11/14的旧版experimental filesystem
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 #endif
 
 #ifdef _MY_WINDOWS_
@@ -268,8 +268,8 @@ int main()
     password.assign(password.size(), '\0');
 
     //4. 转发逻辑
-    if(strstr(script_name.c_str(), "autosign") == nullptr) {
-        cout << "已进入交互模式，请使用方向键选择..." << endl;
+    if(strstr(script_name.c_str(), "autosign.js") == nullptr) {
+        cout << "[C++] 已进入交互模式" << endl;
 
         char ch;
         #ifdef _MY_WINDOWS_

@@ -21,7 +21,7 @@ g++ .\input.cpp -o input.exe
 ```
 
 Linux
-```shell
+```bash
 g++ ./input.cpp -o input
 ./input
 ```
