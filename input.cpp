@@ -3,18 +3,26 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
+#include <vector>
 using namespace std;
 
-#include <filesystem>
+#if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
+#define _MY_WINDOWS_
+#elif defined(__linux__) || defined(linux) || defined(__linux)
+#define _MY_LINUX_
+#endif
 
 #if __cplusplus >= 201703L
 #include <filesystem>
 namespace fs = std::filesystem;
-#elif defined(_WIN32) || defined(__linux__)
+#else
 // 兼容C++11/14的旧版experimental filesystem
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #endif
+
+void maintain_history(fstream &history, char **records);
 
 #ifdef _MY_WINDOWS_
 
@@ -31,6 +39,16 @@ void read_script_name(string &script_name)
 {
     
     char c;
+    int i, idx, n, length;
+
+    fstream history;
+    vector<string> records;
+    history.open("scriptHistory.txt");
+    if(history.is_open()) {
+        maintain_history(history, records);
+        n = records.size();
+        idx = n;
+    }
 
     read_script_name_again:
     cout << "输入脚本路径：.js\b\b\b";
@@ -48,6 +66,24 @@ void read_script_name(string &script_name)
             script_name += c;
             cout << c << ".js\b\b\b";
         }
+        else if(n>0 && c==224) {
+            c = _getch();
+            length = script_name.size();
+            if(c == 72 && idx>0) {//上箭头
+                for(i=0; i<length+1; i++)
+                    cout << "\b \b";
+                script_name = records[--idx];
+                cout << script_name << ".js\b\b\b";
+            }
+            else if(c == 80 && idx<n-1) {//下箭头
+                script_name.pop_back();
+                cout << "\b \b";
+                for(i=0; i<length+1; i++)
+                    cout << "\b \b";
+                script_name = records[++idx];
+                cout << script_name << ".js\b\b\b";
+            }
+        }
     }
     script_name += ".js";
     cout << '\n';
@@ -58,6 +94,8 @@ void read_script_name(string &script_name)
         goto read_script_name_again;
     }
 
+    if(history.is_open())
+        history.push_back(script_name);
 
     cout << "以下命令将执行，可继续添加参数，直接回车则参数为空：\n";
     cout << "node " << script_name << ' ';
@@ -225,6 +263,8 @@ int main()
     string script_name;
     read_script_name(script_name);
 
+    
+
     read_num_again:
 
     cout << "输入学号：";
@@ -302,4 +342,17 @@ int main()
     PCLOSE(node_pipe);
 
     return 0;
+}
+
+void maintain_history(fstream &history, vector<string> &records)
+{
+    history.clear();
+    records.clear();
+    string line;
+    int pos;
+    while(getline(history, line)) {
+        pos = line.rfind(".js");
+        if(pos == string::npos) continue;
+        records.push_back(line.substr(0, pos));
+    }
 }
