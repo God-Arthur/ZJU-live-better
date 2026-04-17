@@ -22,7 +22,7 @@ namespace fs = std::filesystem;
 namespace fs = std::experimental::filesystem;
 #endif
 
-void maintain_history(fstream &history, char **records);
+void maintain_history(fstream &history, vector<string> &records);
 
 #ifdef _MY_WINDOWS_
 
@@ -31,118 +31,6 @@ void maintain_history(fstream &history, char **records);
 
 #include <conio.h>
 
-void set_utf8_codepage() {
-    system("chcp 65001 > nul");
-}
-
-void read_script_name(string &script_name)
-{
-    
-    char c;
-    int i, idx, n, length;
-
-    fstream history;
-    vector<string> records;
-    history.open("scriptHistory.txt");
-    if(history.is_open()) {
-        maintain_history(history, records);
-        n = records.size();
-        idx = n;
-    }
-
-    read_script_name_again:
-    cout << "输入脚本路径：.js\b\b\b";
-    script_name.clear();
-
-    while((c = _getch()) != '\r') {
-        cout << "   \b\b\b";
-        if(c == '\b') {
-            if(!script_name.empty()) {
-                script_name.pop_back();
-                cout << "\b \b";
-            }
-        }
-        else if(c>=32 && c<=126) {
-            script_name += c;
-            cout << c << ".js\b\b\b";
-        }
-        else if(n>0 && c==224) {
-            c = _getch();
-            length = script_name.size();
-            if(c == 72 && idx>0) {//上箭头
-                for(i=0; i<length+1; i++)
-                    cout << "\b \b";
-                script_name = records[--idx];
-                cout << script_name << ".js\b\b\b";
-            }
-            else if(c == 80 && idx<n-1) {//下箭头
-                script_name.pop_back();
-                cout << "\b \b";
-                for(i=0; i<length+1; i++)
-                    cout << "\b \b";
-                script_name = records[++idx];
-                cout << script_name << ".js\b\b\b";
-            }
-        }
-    }
-    script_name += ".js";
-    cout << '\n';
-
-    if(!fs::exists(fs::path(script_name))) {
-        cout << "脚本不存在，请检查输入\n";
-        script_name.clear();
-        goto read_script_name_again;
-    }
-
-    if(history.is_open())
-        history.push_back(script_name);
-
-    cout << "以下命令将执行，可继续添加参数，直接回车则参数为空：\n";
-    cout << "node " << script_name << ' ';
-
-    string arg;
-    arg.clear();
-
-    while((c = getchar()) != '\n'){
-        arg += c;
-    }
-    if(!arg.empty())
-        script_name += " " + arg;
-}
-void read_password(string &password)
-{
-    read_password_again:
-    cout << "输入密码：";
-    password.clear();
-    char c;
-    while((c = _getch()) != '\r') {
-        if(c == '\b') {
-            if(!password.empty()) {
-                password.pop_back();
-                cout << "\b \b";
-            }
-        }
-        else if(c>=32 && c<=126) {
-            cout << "*";
-            password += c;
-        }
-    }
-    cout << '\n';
-
-    invalid_password_check:
-    cout << "确认?[y/n] ";
-    string tmp;
-    cin >> tmp;
-    cin.ignore();
-    if(tmp == "n") {
-        password.clear();
-        goto read_password_again;
-    }
-    else if(tmp != "y") {
-        goto invalid_password_check;
-    }
-}
-
 #elif defined(_MY_LINUX_)
 
 #define POPEN popen
@@ -150,49 +38,209 @@ void read_password(string &password)
 
 #include <termios.h>
 #include <unistd.h>
+
+#endif
+
 void read_script_name(string &script_name)
 {
     
+    char c;
+    int i, idx, n, length, arrow;
+
+    string tmp;
+
+    fstream history;
+    vector<string> records;
+
+    #ifdef _MY_LINUX_
     struct termios old_attr, new_attr;
     tcgetattr(STDIN_FILENO, &old_attr);
+    #endif
 
+    read_script_name_again:
+
+    if (!fs::exists(fs::path("./config"))) {
+        fs::create_directory("./config");
+    }
+    
+    history.open("./config/scriptHistory.txt", ios::in | ios::out | ios::app);
+    if(!history.is_open()) {
+        history.clear();
+        history.open("./config/scriptHistory.txt", ios::in | ios::out | ios::app);
+    }
+
+    if(history.is_open()) {
+        maintain_history(history, records);
+    }
+
+    #ifdef _MY_LINUX_
     // 关闭回显
     new_attr = old_attr;
     new_attr.c_lflag &= ~ECHO;
     new_attr.c_lflag &= ~ICANON;
     tcsetattr(STDIN_FILENO, TCSANOW, &new_attr);
+    #endif
 
-    char c;
+    arrow = 0;
 
-    read_script_name_again:
+    if(history.is_open()) {
+        n = records.size();
+        idx = n;
+    }
+
     cout << "输入脚本路径：.js\b\b\b";
     script_name.clear();
 
-    while((c = getchar()) != '\n') {
+    #ifdef _MY_WINDOWS_
+    while((c = _getch()) != '\r')
+    #elif defined(_MY_LINUX_)
+    while((c = getchar()) != '\n')
+    #endif
+
+    {
         cout << "   \b\b\b";
-        if(c == 127)/*退格键*/ {
+
+        #ifdef _MY_WINDOWS_
+        if(c == '\b')
+        #elif defined(_MY_LINUX_)
+        if(c == 127)/*退格键*/
+        #endif
+
+        {
+            if(arrow) {
+                idx = n;
+                arrow = 0;
+            }
+
             if(!script_name.empty()) {
                 script_name.pop_back();
                 cout << "\b \b";
             }
+            cout << ".js\b\b\b";
         }
         else if(c>=32 && c<=126) {
+            if(arrow) {
+                idx = n;
+                arrow = 0;
+            }
+            
             script_name += c;
-            cout << c;
+            cout << c << ".js\b\b\b";
         }
-        cout << ".js\b\b\b";
-    }
-    script_name += ".js";
+
+        #ifdef _MY_WINDOWS_
+        else if(c==-32 || c==0)
+        #elif defined(_MY_LINUX_)
+        else if(c == 27) /* Esc 键开始序列 */
+        #endif
         
+        {
+            #ifdef _MY_LINUX_
+            if((c = getchar()) == 91)
+            #endif
+            {
+                #ifdef _MY_WINDOWS_
+                c = _getch();
+                #elif defined(_MY_LINUX_)
+                c = getchar();
+                #endif
+
+                if(n == 0) {
+                    cout << ".js\b\b\b";
+                    continue;
+                }
+
+                length = script_name.size();
+                
+                #ifdef _MY_WINDOWS_
+                if(c == 72)
+                #elif defined(_MY_LINUX_)
+                if(c == 65)
+                #endif
+                {//上箭头
+
+                    if(idx==0) {
+                        cout << ".js\b\b\b";
+                        continue;
+                    }
+                    else if(idx == n) {
+                        tmp.clear();
+                        tmp = script_name;
+                    }
+
+                    for(i=0; i<length; i++)
+                        cout << "\b \b";
+                    script_name = records[--idx];
+                    cout << script_name << ".js\b\b\b";
+
+                    arrow = 1;
+                }
+
+                #ifdef _MY_WINDOWS_
+                if(c == 80)
+                #elif defined(_MY_LINUX_)
+                if(c == 66)
+                #endif
+
+                {//下箭头
+
+                    if(idx == n) {
+                        cout << ".js\b\b\b";
+                        continue;
+                    }
+
+                    for(i=0; i<length; i++)
+                        cout << "\b \b";
+
+                    if(idx == n-1) {
+                        script_name = tmp;
+                        idx++;
+                    }
+                    else script_name = records[++idx];
+                    cout << script_name << ".js\b\b\b";
+
+                    arrow = 1;
+                }
+            }
+        }
+        
+        else if(c==3) {//Ctrl+C
+            cout << "\n^C\n";
+            #ifdef _MY_LINUX_
+            tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+            #endif
+            exit(0);
+            
+        }
+    }
     cout << '\n';
 
-    if(!fs::exists(fs::path(script_name))) {
+    if(!fs::exists(fs::path(script_name + ".js"))) {
         cout << "脚本不存在，请检查输入\n";
         goto read_script_name_again;
     }
 
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+    if(history.is_open()) {
+        for(size_t i = 0; i < records.size(); i++) {
+            if(records[i] == script_name) {
+                records.erase(records.begin() + i);
+                break;
+            }
+        }
+        records.push_back(script_name);
+        history.close();
+        history.open("./config/scriptHistory.txt", ios::out | ios::trunc);
+        for(const auto& r : records) {
+            history << r << '\n';
+        }
+        history.close();
+    }//写入新历史记录，若存在则删除旧记录，相当于更新
 
+    script_name = "\"" + script_name + ".js\"";
+
+    #ifdef _MY_LINUX_
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+    #endif
 
     cout << "以下命令将执行，可继续添加参数，直接回车则参数为空：\n";
     cout << "node " << script_name << ' ';
@@ -204,46 +252,71 @@ void read_script_name(string &script_name)
         arg += c;
     }
     if(!arg.empty())
-        script_name += " " + arg;
+        script_name += arg;
 }
 void read_password(string &password)
 {
+    #ifdef _MY_LINUX_
+    struct termios old_attr, new_attr;
+    tcgetattr(STDIN_FILENO, &old_attr);
+    #endif
+
     read_password_again:
 
     cout << "输入密码：";
     password.clear();
-    struct termios old_attr, new_attr;
-    tcgetattr(STDIN_FILENO, &old_attr);
-
+    
+    #ifdef _MY_LINUX_
     // 关闭回显
     new_attr = old_attr;
     new_attr.c_lflag &= ~ECHO;
     new_attr.c_lflag &= ~ICANON;
     tcsetattr(STDIN_FILENO, TCSANOW, &new_attr);
+    #endif
 
     char c;
-    while((c = getchar()) != '\n') {
-        if(c == 127)/*退格键*/ {
+
+    #ifdef _MY_WINDOWS_
+    while((c = _getch()) != '\r')
+    #elif defined(_MY_LINUX_)
+    while((c = getchar()) != '\n')
+    #endif
+
+    {
+        if(c == '\b') {
             if(!password.empty()) {
                 password.pop_back();
                 cout << "\b \b";
             }
         }
         else if(c>=32 && c<=126) {
-            password += c;
             cout << "*";
+            password += c;
+        }
+        else if(c==3) {//Ctrl+C
+            cout << "\n^C\n";
+            #ifdef _MY_LINUX_
+            tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+            #endif
+            exit(0);
+            
         }
     }
-    
+
+    #ifdef _MY_LINUX_
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+    #endif
 
     cout << '\n';
 
+
     invalid_password_check:
+
     cout << "确认?[y/n] ";
     string tmp;
     cin >> tmp;
     cin.ignore();
+
     if(tmp == "n") {
         password.clear();
         goto read_password_again;
@@ -252,41 +325,236 @@ void read_password(string &password)
         goto invalid_password_check;
     }
 }
-#endif
 
-int main()
+void read_num(string &num)
+{
+    char c;
+    int i, idx, n, length, arrow;
+
+    string tmp;
+
+    fstream history;
+    vector<string> records;
+
+    #ifdef _MY_LINUX_
+    struct termios old_attr, new_attr;
+    tcgetattr(STDIN_FILENO, &old_attr);
+    #endif
+
+    read_num_again:
+
+    if (!fs::exists(fs::path("./config"))) {
+        fs::create_directory("./config");
+    }
+
+    history.open("./config/numHistory.txt", ios::in | ios::out | ios::app);
+    if(!history.is_open()) {
+        history.clear();
+        history.open("./config/numHistory.txt", ios::in | ios::out | ios::app);
+    }
+
+    if(history.is_open()) {
+        maintain_history(history, records);
+    }
+
+    #ifdef _MY_LINUX_
+    // 关闭回显
+    new_attr = old_attr;
+    new_attr.c_lflag &= ~ECHO;
+    new_attr.c_lflag &= ~ICANON;
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_attr);
+    #endif
+
+    arrow = 0;
+
+    if(history.is_open()) {
+        n = records.size();
+        idx = n;
+    }
+
+    cout << "输入学号：";
+    num.clear();
+
+    #ifdef _MY_WINDOWS_
+    while((c = _getch()) != '\r')
+    #elif defined(_MY_LINUX_)
+    while((c = getchar()) != '\n')
+    #endif
+
+    {
+        #ifdef _MY_WINDOWS_
+        if(c == '\b')
+        #elif defined(_MY_LINUX_)
+        if(c == 127)/*退格键*/
+        #endif
+        
+        {
+            if(arrow) {
+                idx = n;
+                arrow = 0;
+            }
+
+            if(!num.empty()) {
+                num.pop_back();
+                cout << "\b \b";
+            }
+        }
+        else if(c>=32 && c<=126) {
+            if(arrow) {
+                idx = n;
+                arrow = 0;
+            }
+
+            cout << c;
+            num += c;
+        }
+
+        #ifdef _MY_WINDOWS_
+        else if(c==-32 || c==0)
+        #elif defined(_MY_LINUX_)
+        else if(c == 27)/* Esc 键开始序列 */
+        #endif
+
+        {
+            #ifdef _MY_LINUX_
+            if((c = getchar()) == 91)
+            #endif
+            {
+                #ifdef _MY_WINDOWS_
+                c = _getch();
+                #elif defined(_MY_LINUX_)
+                c = getchar();
+                #endif
+
+                if(n == 0) {
+                    continue;
+                }
+
+                length = num.size();
+
+                #ifdef _MY_WINDOWS_
+                if(c == 72)
+                #elif defined(_MY_LINUX_)
+                if(c == 65)
+                #endif
+                
+                {//上箭头
+                    if(idx==0) {
+                        continue;
+                    }
+                    else if(idx==n) {
+                        tmp.clear();
+                        tmp = num;
+                    }
+
+                    for(i=0; i<length; i++)
+                        cout << "\b \b";
+                    num = records[--idx];
+                    cout << num;
+
+                    arrow = 1;
+                }
+
+                #ifdef _MY_WINDOWS_
+                if(c == 80)
+                #elif defined(_MY_LINUX_)
+                if(c == 66)
+                #endif
+
+                {//下箭头
+                    if(idx==n) {
+                        continue;
+                    }
+
+                    for(i=0; i<length; i++)
+                        cout << "\b \b";
+
+                    if(idx==n-1) {
+                        num = tmp;
+                        idx++;
+                    }
+                    else num = records[++idx];
+                    cout << num;
+
+                    arrow = 1;
+                }
+            }
+        }
+        
+        else if(c==3) {//Ctrl+C
+            cout << "\n^C\n";
+            #ifdef _MY_LINUX_
+            tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+            #endif
+            exit(0);
+        }
+    }
+    cout << '\n';
+
+    #ifdef _MY_LINUX_
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+    #endif
+
+
+    invalid_num_check:
+
+    cout << "确认?[y/n] ";
+    string check;
+    cin >> check;
+    cin.ignore();
+
+    if(check == "n") {
+        num.clear();
+        goto read_num_again;
+    }
+    else if(check != "y") {
+        if(num.empty())
+            goto read_num_again;
+        else
+            goto invalid_num_check;
+    }
+
+    if(history.is_open()) {
+        for(size_t i = 0; i < records.size(); i++) {
+            if(records[i] == num) {
+                records.erase(records.begin() + i);
+                break;
+            }
+        }
+        records.push_back(num);
+        history.close();
+        history.open("./config/numHistory.txt", ios::out | ios::trunc);
+        for(const auto& r : records) {
+            history << r << '\n';
+        }
+        history.close();
+    }
+}
+
+
+
+//定义安全抹除函数
+void secure_erase(string &s) {
+    if (s.empty()) return;
+    // 使用 volatile 指针防止编译器优化掉抹除操作
+    volatile char* p = const_cast<volatile char*>(s.data());
+    size_t n = s.size();
+    while (n--) *p++ = '\0';
+    s.clear(); 
+}
+
+int main(void)
 {
     #ifdef _MY_WINDOWS_
-    set_utf8_codepage();
+    system("chcp 65001 > nul");//设置为UTF-8编码页
     #endif
     
     string script_name;
     read_script_name(script_name);
 
+    string num;
+    read_num(num);
     
-
-    read_num_again:
-
-    cout << "输入学号：";
-    string str;
-    cin >> str;
-    str = str.substr(0, 10);
-
-    cin.ignore();
-
-    invalid_num_check:
-    cout << "确认?[y/n] ";
-    string tmp;
-    cin >> tmp;
-    cin.ignore();
-    if(tmp == "n") {
-        str.clear();
-        goto read_num_again;
-    }
-    else if(tmp != "y") {
-        goto invalid_num_check;
-    }
-
     string password;
     read_password(password);
 
@@ -299,13 +567,13 @@ int main()
     }
 
     // 2. 将学号和密码写入管道（传输给 Node.js）
-    fprintf(node_pipe, "%s %s\n__END_OF_SECRET__\n", str.c_str(), password.c_str());
+    fprintf(node_pipe, "%s %s\n__END_OF_SECRET__\n", num.c_str(), password.c_str());
     fflush(node_pipe);
     cout << "\n[C++] 敏感数据安全传输至" << script_name << endl;
     
     // 3. 安全：抹除 C++ 内存中的学号和密码
-    str.assign(str.size(), '\0');
-    password.assign(password.size(), '\0');
+    secure_erase(num);
+    secure_erase(password);
 
     //4. 转发逻辑
     if(strstr(script_name.c_str(), "autosign.js") == nullptr) {
@@ -346,13 +614,11 @@ int main()
 
 void maintain_history(fstream &history, vector<string> &records)
 {
-    history.clear();
     records.clear();
+    history.clear();
+    history.seekg(0);
     string line;
-    int pos;
     while(getline(history, line)) {
-        pos = line.rfind(".js");
-        if(pos == string::npos) continue;
-        records.push_back(line.substr(0, pos));
+        records.push_back(line);
     }
 }
