@@ -8,8 +8,6 @@ https://github.com/5dbwat4/ZJU-live-better
 
 ## 配置
 
-创建文件`.env`，配置你的学号和密码
-
 运行`npm install`安装依赖
 
 请确保你已安装g++编译器
