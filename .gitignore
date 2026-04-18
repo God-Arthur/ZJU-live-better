@@ -81,6 +81,8 @@ web_modules/
 input
 input.exe
 config/
+config
+config/**
 
 
 # parcel-bundler cache (https://parceljs.org/)

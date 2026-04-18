@@ -12,7 +12,7 @@
 const cacheFile = process.argv.find((v) => v.endsWith(".cache.json"));
 
 if (!cacheFile) {
-  console.error("Please provide a cache file path as an argument.");  
+  console.error("ERROR: Please provide a cache file path as an argument.");  
   process.exit(1);
 }
 

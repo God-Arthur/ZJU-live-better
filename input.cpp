@@ -252,7 +252,7 @@ void read_script_name(string &script_name)
         arg += c;
     }
     if(!arg.empty())
-        script_name += arg;
+        script_name += ' ' + arg;
 }
 void read_password(string &password)
 {
