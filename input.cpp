@@ -11,6 +11,8 @@ using namespace std;
 #define _MY_WINDOWS_
 #elif defined(__linux__) || defined(linux) || defined(__linux)
 #define _MY_LINUX_
+#elif defined(__APPLE__)
+#define _MY_MAC_
 #endif
 
 #if __cplusplus >= 201703L
@@ -31,7 +33,7 @@ void maintain_history(fstream &history, vector<string> &records);
 
 #include <conio.h>
 
-#elif defined(_MY_LINUX_)
+#elif defined(_MY_LINUX_) || defined(_MY_MAC_)
 
 #define POPEN popen
 #define PCLOSE pclose
@@ -73,7 +75,7 @@ void read_script_name(string &script_name)
         maintain_history(history, records);
     }
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     // 关闭回显
     new_attr = old_attr;
     new_attr.c_lflag &= ~ECHO;
@@ -93,7 +95,7 @@ void read_script_name(string &script_name)
 
     #ifdef _MY_WINDOWS_
     while((c = _getch()) != '\r')
-    #elif defined(_MY_LINUX_)
+    #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
     while((c = getchar()) != '\n')
     #endif
 
@@ -102,7 +104,7 @@ void read_script_name(string &script_name)
 
         #ifdef _MY_WINDOWS_
         if(c == '\b')
-        #elif defined(_MY_LINUX_)
+        #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
         if(c == 127)/*退格键*/
         #endif
 
@@ -130,18 +132,18 @@ void read_script_name(string &script_name)
 
         #ifdef _MY_WINDOWS_
         else if(c==-32 || c==0)
-        #elif defined(_MY_LINUX_)
+        #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
         else if(c == 27) /* Esc 键开始序列 */
         #endif
         
         {
-            #ifdef _MY_LINUX_
+            #if defined(_MY_LINUX_) || defined(_MY_MAC_)
             if((c = getchar()) == 91)
             #endif
             {
                 #ifdef _MY_WINDOWS_
                 c = _getch();
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 c = getchar();
                 #endif
 
@@ -154,7 +156,7 @@ void read_script_name(string &script_name)
                 
                 #ifdef _MY_WINDOWS_
                 if(c == 72)
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 if(c == 65)
                 #endif
                 {//上箭头
@@ -178,7 +180,7 @@ void read_script_name(string &script_name)
 
                 #ifdef _MY_WINDOWS_
                 if(c == 80)
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 if(c == 66)
                 #endif
 
@@ -206,7 +208,7 @@ void read_script_name(string &script_name)
         
         else if(c==3) {//Ctrl+C
             cout << "\n^C\n";
-            #ifdef _MY_LINUX_
+            #if defined(_MY_LINUX_) || defined(_MY_MAC_)
             tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
             #endif
             exit(0);
@@ -238,7 +240,7 @@ void read_script_name(string &script_name)
 
     script_name = "\"" + script_name + ".js\"";
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
     #endif
 
@@ -255,7 +257,7 @@ void read_script_name(string &script_name)
         maintain_history(arg_history, arg_records);
     }
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     new_attr = old_attr;
     new_attr.c_lflag &= ~ECHO;
     new_attr.c_lflag &= ~ICANON;
@@ -279,13 +281,13 @@ void read_script_name(string &script_name)
 
     #ifdef _MY_WINDOWS_
     while((c = _getch()) != '\r')
-    #elif defined(_MY_LINUX_)
+    #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
     while((c = getchar()) != '\n')
     #endif
     {
         #ifdef _MY_WINDOWS_
         if(c == '\b')
-        #elif defined(_MY_LINUX_)
+        #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
         if(c == 127)
         #endif
 
@@ -334,7 +336,7 @@ void read_script_name(string &script_name)
 
                 #ifdef _MY_WINDOWS_
                 if(c == 72)
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 if(c == 65)
                 #endif
                 {
@@ -356,7 +358,7 @@ void read_script_name(string &script_name)
 
                 #ifdef _MY_WINDOWS_
                 if(c == 80)
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 if(c == 66)
                 #endif
                 {
@@ -381,7 +383,7 @@ void read_script_name(string &script_name)
 
         else if(c==3) {
             cout << "\n^C\n";
-            #ifdef _MY_LINUX_
+            #if defined(_MY_LINUX_) || defined(_MY_MAC_)
             tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
             #endif
             exit(0);
@@ -405,7 +407,7 @@ void read_script_name(string &script_name)
         arg_history.close();
     }
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
     #endif
 
@@ -414,7 +416,7 @@ void read_script_name(string &script_name)
 }
 void read_password(string &password)
 {
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     struct termios old_attr, new_attr;
     tcgetattr(STDIN_FILENO, &old_attr);
     #endif
@@ -436,14 +438,14 @@ void read_password(string &password)
 
     #ifdef _MY_WINDOWS_
     while((c = _getch()) != '\r')
-    #elif defined(_MY_LINUX_)
+    #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
     while((c = getchar()) != '\n')
     #endif
 
     {
         #ifdef _MY_WINDOWS_
         if(c == '\b')
-        #elif defined(_MY_LINUX_)
+        #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
         if(c == 127)
         #endif
 
@@ -459,7 +461,7 @@ void read_password(string &password)
         }
         else if(c==3) {//Ctrl+C
             cout << "\n^C\n";
-            #ifdef _MY_LINUX_
+            #if defined(_MY_LINUX_) || defined(_MY_MAC_)
             tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
             #endif
             exit(0);
@@ -467,7 +469,7 @@ void read_password(string &password)
         }
     }
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
     #endif
 
@@ -500,7 +502,7 @@ void read_num(string &num)
     fstream history;
     vector<string> records;
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     struct termios old_attr, new_attr;
     tcgetattr(STDIN_FILENO, &old_attr);
     #endif
@@ -521,7 +523,7 @@ void read_num(string &num)
         maintain_history(history, records);
     }
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     // 关闭回显
     new_attr = old_attr;
     new_attr.c_lflag &= ~ECHO;
@@ -541,14 +543,14 @@ void read_num(string &num)
 
     #ifdef _MY_WINDOWS_
     while((c = _getch()) != '\r')
-    #elif defined(_MY_LINUX_)
+    #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
     while((c = getchar()) != '\n')
     #endif
 
     {
         #ifdef _MY_WINDOWS_
         if(c == '\b')
-        #elif defined(_MY_LINUX_)
+        #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
         if(c == 127)/*退格键*/
         #endif
         
@@ -575,18 +577,18 @@ void read_num(string &num)
 
         #ifdef _MY_WINDOWS_
         else if(c==-32 || c==0)
-        #elif defined(_MY_LINUX_)
+        #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
         else if(c == 27)/* Esc 键开始序列 */
         #endif
 
         {
-            #ifdef _MY_LINUX_
+            #if defined(_MY_LINUX_) || defined(_MY_MAC_)
             if((c = getchar()) == 91)
             #endif
             {
                 #ifdef _MY_WINDOWS_
                 c = _getch();
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 c = getchar();
                 #endif
 
@@ -598,7 +600,7 @@ void read_num(string &num)
 
                 #ifdef _MY_WINDOWS_
                 if(c == 72)
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 if(c == 65)
                 #endif
                 
@@ -621,7 +623,7 @@ void read_num(string &num)
 
                 #ifdef _MY_WINDOWS_
                 if(c == 80)
-                #elif defined(_MY_LINUX_)
+                #elif defined(_MY_LINUX_) || defined(_MY_MAC_)
                 if(c == 66)
                 #endif
 
@@ -647,7 +649,7 @@ void read_num(string &num)
         
         else if(c==3) {//Ctrl+C
             cout << "\n^C\n";
-            #ifdef _MY_LINUX_
+            #if defined(_MY_LINUX_) || defined(_MY_MAC_)
             tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
             #endif
             exit(0);
@@ -655,7 +657,7 @@ void read_num(string &num)
     }
     cout << '\n';
 
-    #ifdef _MY_LINUX_
+    #if defined(_MY_LINUX_) || defined(_MY_MAC_)
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
     #endif
 

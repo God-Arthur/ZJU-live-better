@@ -24,6 +24,12 @@ g++ ./input.cpp -o input
 ./input
 ```
 
+macOS
+```bash
+g++ ./input.cpp -o input
+./input
+```
+
 也可以运行`npm link`将本项目链接到全局，然后可以直接在任意目录下运行`zlb`进入脚本选择
 
 ## 功能列表
