@@ -242,15 +242,173 @@ void read_script_name(string &script_name)
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
     #endif
 
+    fstream arg_history;
+    vector<string> arg_records;
+
+    arg_history.open("./config/argHistory.txt", ios::in | ios::out | ios::app);
+    if(!arg_history.is_open()) {
+        arg_history.clear();
+        arg_history.open("./config/argHistory.txt", ios::in | ios::out | ios::app);
+    }
+
+    if(arg_history.is_open()) {
+        maintain_history(arg_history, arg_records);
+    }
+
+    #ifdef _MY_LINUX_
+    new_attr = old_attr;
+    new_attr.c_lflag &= ~ECHO;
+    new_attr.c_lflag &= ~ICANON;
+    tcsetattr(STDIN_FILENO, TCSANOW, &new_attr);
+    #endif
+
+    int arg_idx, arg_n, arg_length;
+    string arg_tmp;
+    int arg_arrow = 0;
+
+    if(arg_history.is_open()) {
+        arg_n = arg_records.size();
+        arg_idx = arg_n;
+    }
+
     cout << "以下命令将执行，可继续添加参数，直接回车则参数为空：\n";
     cout << "node " << script_name << ' ';
 
     string arg;
     arg.clear();
 
-    while((c = getchar()) != '\n'){
-        arg += c;
+    #ifdef _MY_WINDOWS_
+    while((c = _getch()) != '\r')
+    #elif defined(_MY_LINUX_)
+    while((c = getchar()) != '\n')
+    #endif
+    {
+        #ifdef _MY_WINDOWS_
+        if(c == '\b')
+        #elif defined(_MY_LINUX_)
+        if(c == 127)
+        #endif
+
+        {
+            if(arg_arrow) {
+                arg_idx = arg_n;
+                arg_arrow = 0;
+            }
+
+            if(!arg.empty()) {
+                arg.pop_back();
+                cout << "\b \b";
+            }
+        }
+        else if(c>=32 && c<=126) {
+            if(arg_arrow) {
+                arg_idx = arg_n;
+                arg_arrow = 0;
+            }
+
+            arg += c;
+            cout << c;
+        }
+
+        #ifdef _MY_WINDOWS_
+        else if(c==-32 || c==0)
+        #elif defined(_MY_LINUX_)
+        else if(c == 27)
+        #endif
+        {
+            #ifdef _MY_LINUX_
+            if((c = getchar()) == 91)
+            #endif
+            {
+                #ifdef _MY_WINDOWS_
+                c = _getch();
+                #elif defined(_MY_LINUX_)
+                c = getchar();
+                #endif
+
+                if(arg_n == 0) {
+                    continue;
+                }
+
+                arg_length = arg.size();
+
+                #ifdef _MY_WINDOWS_
+                if(c == 72)
+                #elif defined(_MY_LINUX_)
+                if(c == 65)
+                #endif
+                {
+                    if(arg_idx==0) {
+                        continue;
+                    }
+                    else if(arg_idx == arg_n) {
+                        arg_tmp.clear();
+                        arg_tmp = arg;
+                    }
+
+                    for(i=0; i<arg_length; i++)
+                        cout << "\b \b";
+                    arg = arg_records[--arg_idx];
+                    cout << arg;
+
+                    arg_arrow = 1;
+                }
+
+                #ifdef _MY_WINDOWS_
+                if(c == 80)
+                #elif defined(_MY_LINUX_)
+                if(c == 66)
+                #endif
+                {
+                    if(arg_idx == arg_n) {
+                        continue;
+                    }
+
+                    for(i=0; i<arg_length; i++)
+                        cout << "\b \b";
+
+                    if(arg_idx == arg_n-1) {
+                        arg = arg_tmp;
+                        arg_idx++;
+                    }
+                    else arg = arg_records[++arg_idx];
+                    cout << arg;
+
+                    arg_arrow = 1;
+                }
+            }
+        }
+
+        else if(c==3) {
+            cout << "\n^C\n";
+            #ifdef _MY_LINUX_
+            tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+            #endif
+            exit(0);
+        }
     }
+    cout << '\n';
+
+    if(arg_history.is_open()) {
+        for(size_t i = 0; i < arg_records.size(); i++) {
+            if(arg_records[i] == arg) {
+                arg_records.erase(arg_records.begin() + i);
+                break;
+            }
+        }
+        arg_records.push_back(arg);
+        arg_history.close();
+        arg_history.open("./config/argHistory.txt", ios::out | ios::trunc);
+        for(const auto& r : arg_records) {
+            arg_history << r << '\n';
+        }
+        arg_history.close();
+    }
+
+    #ifdef _MY_LINUX_
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+    #endif
+
     if(!arg.empty())
         script_name += ' ' + arg;
 }
@@ -283,7 +441,13 @@ void read_password(string &password)
     #endif
 
     {
-        if(c == '\b') {
+        #ifdef _MY_WINDOWS_
+        if(c == '\b')
+        #elif defined(_MY_LINUX_)
+        if(c == 127)
+        #endif
+
+        {
             if(!password.empty()) {
                 password.pop_back();
                 cout << "\b \b";
@@ -312,7 +476,7 @@ void read_password(string &password)
 
     invalid_password_check:
 
-    cout << "确认?[y/n] ";
+    cout << "确认?[Y/n] ";
     string tmp;
     cin >> tmp;
     cin.ignore();
@@ -321,7 +485,7 @@ void read_password(string &password)
         password.clear();
         goto read_password_again;
     }
-    else if(tmp != "y") {
+    else if(tmp != "Y") {
         goto invalid_password_check;
     }
 }
@@ -498,7 +662,7 @@ void read_num(string &num)
 
     invalid_num_check:
 
-    cout << "确认?[y/n] ";
+    cout << "确认?[Y/n] ";
     string check;
     cin >> check;
     cin.ignore();
@@ -507,7 +671,7 @@ void read_num(string &num)
         num.clear();
         goto read_num_again;
     }
-    else if(check != "y") {
+    else if(check != "Y") {
         if(num.empty())
             goto read_num_again;
         else
