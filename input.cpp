@@ -391,7 +391,7 @@ void read_script_name(string &script_name)
     }
     cout << '\n';
 
-    if(arg_history.is_open()) {
+    if(arg_history.is_open() && !arg.empty() {
         for(size_t i = 0; i < arg_records.size(); i++) {
             if(arg_records[i] == arg) {
                 arg_records.erase(arg_records.begin() + i);
