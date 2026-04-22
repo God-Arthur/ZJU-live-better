@@ -391,7 +391,7 @@ void read_script_name(string &script_name)
     }
     cout << '\n';
 
-    if(arg_history.is_open() && !arg.empty() {
+    if(arg_history.is_open() && !arg.empty()) {
         for(size_t i = 0; i < arg_records.size(); i++) {
             if(arg_records[i] == arg) {
                 arg_records.erase(arg_records.begin() + i);
@@ -473,8 +473,14 @@ void read_password(string &password)
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
     #endif
 
+    for(int i=0; i<password.size(); i++)
+        cout << "\b \b";
     cout << '\n';
 
+    if(password.empty()) {
+        password.clear();
+        goto read_password_again;
+    }
 
     invalid_password_check:
 
@@ -483,7 +489,7 @@ void read_password(string &password)
     cin >> tmp;
     cin.ignore();
 
-    if(tmp == "n") {
+    if(tmp == "n" || password.empty()) {
         password.clear();
         goto read_password_again;
     }
@@ -661,6 +667,10 @@ void read_num(string &num)
     tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
     #endif
 
+    if(num.empty()) {
+        num.clear();
+        goto read_num_again;
+    }
 
     invalid_num_check:
 
