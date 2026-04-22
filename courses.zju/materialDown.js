@@ -11,6 +11,13 @@ import "dotenv/config";
 import secureLoad from "../security.js";
 
 secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
+const args = process.argv.slice(2);
+const downloadDir = args[0] ? path.resolve(args[0]) : process.cwd();
+
+if (!fs.existsSync(downloadDir)) {
+  fs.mkdirSync(downloadDir, { recursive: true });
+}
+
 const courses = new COURSES(
   new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
@@ -40,7 +47,7 @@ const downloadFiles = (list) => {
     if (!response.ok) {
       throw new Error(`下载失败: ${response.statusText}`);
     }
-    const writer = fs.createWriteStream(fileinfo.name);
+    const writer = fs.createWriteStream(path.join(downloadDir, fileinfo.name));
 
     const bar = multibar.create(fileinfo.size, 0, { filename:fileinfo.name });
 
