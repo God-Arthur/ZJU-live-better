@@ -7,6 +7,14 @@
 #include <vector>
 using namespace std;
 
+// Linux/macOS 需要的头文件（条件包含）
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__APPLE__)
+#include <termios.h>
+#include <unistd.h>
+#endif
+
+
+
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #define _MY_WINDOWS_
 #elif defined(__linux__) || defined(linux) || defined(__linux)
