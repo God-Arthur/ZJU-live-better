@@ -29,6 +29,9 @@ Linux / MacOS
 g++ ./input.cpp -o input
 ./input
 ```
+如果你要使用 `courses.zju/reliableTodolist.js` 里的 Pintia 待办抓取，需要先在浏览器登录 Pintia，然后从 DevTools 中复制请求的 `Cookie` 头，配置到 `.env` 的 `PINTIA_COOKIE`。
+
+使用时，在working dir下运行`node path/to/script`，其中`path/to/script`是指向脚本的路径，例如`classroom.zju/generateCourseMd`
 
 ## 功能列表
 
@@ -58,6 +61,12 @@ g++ ./input.cpp -o input
 | --- | --- |
 | saveDoc | Webplus系统存档备份工具，保存通知及所有附件（适用于office.ckc.zju.edu.cn、cspo.zju.edu.cn等） |
 
+### 图书馆相关（`lib.zju/`）
+
+| 功能 | 说明 |
+| --- | --- |
+| ☆`bookList` | 查询已借阅图书并操作续借 |
+
 ### 共享工具 (shared/)
 
 | 功能 | 说明 |
@@ -82,3 +91,13 @@ input.cpp 提供以下增强功能：
 ## 免责声明
 
 本项目仅供学习交流使用，请勿用于任何商业用途，请勿用于任何非法或违规用途。使用本项目前请务必了解并遵守浙江大学相关政策和规定。作者不对因使用本项目而导致的任何后果负责。
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=5dbwat4%2FZJU-live-better&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=5dbwat4/ZJU-live-better&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=5dbwat4/ZJU-live-better&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=5dbwat4/ZJU-live-better&type=date&legend=top-left" />
+ </picture>
+</a>
