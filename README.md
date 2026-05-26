@@ -20,17 +20,15 @@ https://github.com/5dbwat4/ZJU-live-better
 请确保你已安装g++编译器来编译C++代码
 
 Windows
-\powershell
+```powershell
 g++ .\input.cpp -o input.exe
 .\input.exe
-Linux
-\ash
+```
+Linux / MacOS
+```ash
 g++ ./input.cpp -o input
 ./input
-macOS
-\ash
-g++ ./input.cpp -o input
-./input
+```
 
 ## 功能列表
 
