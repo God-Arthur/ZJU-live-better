@@ -20,11 +20,50 @@ import "dotenv/config";
 
 import secureLoad from "../security.js";
 
+// 捕获未处理的 Promise rejection，打印有意义的错误信息
+process.on("unhandledRejection", (reason) => {
+  console.error("[UnhandledPromiseRejection]", reason);
+});
+
 secureLoad(async (ZJU_USERNAME, ZJU_PASSWORD) => {
 
 const courses = new COURSES(
   new ZJUAM(ZJU_USERNAME, ZJU_PASSWORD)
 );
+
+(async () => {
+  const cacheFile =
+    process.argv.find((v) => v.endsWith(".cache.json")) ||
+    (
+      await inquirer.prompt({
+        type: "input",
+        name: "path",
+        message: "Input your JSON path",
+      })
+    ).path;
+
+  // if (!cacheFile) {
+  //   console.error("Please provide a cache file path as an argument.");
+  //   process.exit(1);
+
+  // }
+
+  const data = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
+
+  if (!data.root) {
+    const fallbackRoot = path.dirname(path.resolve(cacheFile));
+    console.warn(
+      `[!] The cache file does not contain \"root\". Use cache directory as root: ${fallbackRoot}`,
+    );
+    data.root = fallbackRoot;
+  }
+
+  data.root = path.resolve(data.root);
+  if (!fs.existsSync(data.root)) {
+    fs.mkdirSync(data.root, { recursive: true });
+  }
+
+  console.log(data);
 
 const downloadFiles = (list) => {
   const multibar = new cliProgress.MultiBar(
@@ -102,40 +141,6 @@ const downloadFiles = (list) => {
     });
 };
 
-(async () => {
-  const cacheFile =
-    process.argv.find((v) => v.endsWith(".cache.json")) ||
-    (
-      await inquirer.prompt({
-        type: "input",
-        name: "path",
-        message: "Input your JSON path",
-      })
-    ).path;
-
-  // if (!cacheFile) {
-  //   console.error("Please provide a cache file path as an argument.");
-  //   process.exit(1);
-
-  // }
-
-  const data = JSON.parse(fs.readFileSync(cacheFile, "utf-8"));
-
-  if (!data.root) {
-    const fallbackRoot = path.dirname(path.resolve(cacheFile));
-    console.warn(
-      `[!] The cache file does not contain \"root\". Use cache directory as root: ${fallbackRoot}`,
-    );
-    data.root = fallbackRoot;
-  }
-
-  data.root = path.resolve(data.root);
-  if (!fs.existsSync(data.root)) {
-    fs.mkdirSync(data.root, { recursive: true });
-  }
-
-  console.log(data);
-
   courses
     .fetch(`https://courses.zju.edu.cn/api/courses/${data.xid}/activities`)
     .then((v) => v.json())
@@ -176,6 +181,9 @@ const downloadFiles = (list) => {
             downloadFiles(materialList);
           }
         });
+    })
+    .catch((err) => {
+      console.error("[Error]", err.message || err);
     });
 })();
 
