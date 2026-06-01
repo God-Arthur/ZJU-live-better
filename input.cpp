@@ -489,21 +489,6 @@ void read_password(string &password)
         password.clear();
         goto read_password_again;
     }
-
-    invalid_password_check:
-
-    cout << "确认?[Y/n] ";
-    string tmp;
-    cin >> tmp;
-    cin.ignore();
-
-    if(tmp == "n" || password.empty()) {
-        password.clear();
-        goto read_password_again;
-    }
-    else if(tmp != "Y") {
-        goto invalid_password_check;
-    }
 }
 
 void read_num(string &num)
@@ -687,11 +672,11 @@ void read_num(string &num)
     cin >> check;
     cin.ignore();
 
-    if(check == "n") {
+    if(check == "n"|| check == "N") {
         num.clear();
         goto read_num_again;
     }
-    else if(check != "Y") {
+    else if(check != "Y"&& check != "y") {
         if(num.empty())
             goto read_num_again;
         else
@@ -747,6 +732,8 @@ int main(void)
 
     if(!node_pipe) {
         perror("无法启动Node.js进程");
+        secure_erase(num);
+        secure_erase(password);
         return 1;
     }
 
