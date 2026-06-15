@@ -162,33 +162,47 @@ class CourseExporter {
   async getPptData() {
     const base = "https://classroom.zju.edu.cn/pptnote/v1/schedule/search-ppt";
     let page = 1;
-    while (true) {
+    const MAX_PAGES = 1000; // 防止无限循环的安全上限
+    let lastCreatedSec = -1;
+    while (page <= MAX_PAGES) {
       const params = new URLSearchParams({
         course_id: String(this.courseId),
         sub_id: String(this.subId),
         page: String(page),
         per_page: "100",
       });
+      console.log(`[CLASSROOM] Fetching: ${base}?${params.toString()}`);
       const res = await this.classroomInstance.fetch(`${base}?${params.toString()}`);
       if (!res.ok) throw new Error(`PPT request failed: ${res.status}`);
       const data = await res.json();
-      if (data && data.list && data.list.length) {
-        for (const item of data.list) {
-          let content = item.content;
-          try {
-            content = typeof content === "string" ? JSON.parse(content) : content;
-          } catch (e) {
-            content = {};
-          }
-          this.pptData.push({
-            pptimgurl: content.pptimgurl || "",
-            created_sec: Number(item.created_sec || 0),
-          });
-        }
-        page++;
-      } else {
+      if (!data || !Array.isArray(data.list) || data.list.length === 0) {
         break;
       }
+
+      // 检查是否出现重复数据（某些API会忽略page参数返回相同内容）
+      const firstCreatedSec = Number(data.list[0]?.created_sec || 0);
+      if (page > 1 && firstCreatedSec === lastCreatedSec) {
+        console.warn(`[CLASSROOM] Detected duplicate data at page ${page}, stopping.`);
+        break;
+      }
+      lastCreatedSec = firstCreatedSec;
+
+      for (const item of data.list) {
+        let content = item.content;
+        try {
+          content = typeof content === "string" ? JSON.parse(content) : content;
+        } catch (e) {
+          content = {};
+        }
+        this.pptData.push({
+          pptimgurl: content.pptimgurl || "",
+          created_sec: Number(item.created_sec || 0),
+        });
+      }
+      page++;
+    }
+    if (page > MAX_PAGES) {
+      console.warn(`[CLASSROOM] Reached max page limit (${MAX_PAGES}), stopping.`);
     }
     console.log(`Fetched ${this.pptData.length} PPT entries`);
   }
